@@ -27,8 +27,6 @@ class Fetcher:
                     self.deley_cache[domain] = 0.001
                 else:
                     self.deley_cache[domain] = rp.crawl_delay("*")
-
-                print(f"Delay for {domain}: {self.deley_cache[domain]}")
             except:
                 return False
         rp = self.robots_cache[domain]
@@ -44,6 +42,7 @@ class Fetcher:
         now = time.time()
         last = self.last_access.get(url, 0)
         if now - last < self.deley_cache.get(url, 0.001):
+            print(f"Sleeping for: {self.deley_cache.get(url, 0.001) - (now - last)}")
             time.sleep(self.deley_cache.get(url, 0.001) - (now - last))
         
         self.last_access[url] = time.time()
