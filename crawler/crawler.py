@@ -23,7 +23,10 @@ class Crawler():
 
     def crawl(self):
         # While there are URLs to discover and the limit is not reached
-        while self.frontier.has_next() and self.storage.page_count < self.limit:
+        while self.frontier.has_next():
+            if self.storage.page_count >= self.limit:
+                return
+
             # Get next URL from frontier
             url = self.frontier.get()
             if url is None:
@@ -41,11 +44,8 @@ class Crawler():
                 continue
 
             # Print debug information
-
             if self.debug:
-                # print(debug_output(url, title, text, timestamp))
-                print(f"Queue size: {self.frontier.discovery.qsize()}")
-                print(f"Visited URLs: {self.storage.page_count}")
+                print(debug_output(url, title, text, timestamp))
 
             # Store page content
             self.storage.store_page(url, html, timestamp)

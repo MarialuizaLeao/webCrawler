@@ -1,55 +1,53 @@
-# can_fetch(url)
-# respect_delay(url)
-# fetch(url) -> (html, timestamp)
-
 import requests
+from protego import Protego
 import time
 from urllib.parse import urlparse
-from urllib.robotparser import RobotFileParser
+
 
 class Fetcher:
     def __init__(self):
         self.robots_cache = {}
-        self.deley_cache = {}
+        self.delay_cache = {}
         self.last_access = {}
 
     def can_fetch(self, url: str) -> bool:
         parsed_url = urlparse(url)
         domain = parsed_url.netloc
+        # Check if the domain is already in the cache
         if domain not in self.robots_cache:
             robots_url = f"{parsed_url.scheme}://{domain}/robots.txt"
-            rp = RobotFileParser()
-            rp.set_url(robots_url)
             try:
-                rp.read()
-                self.robots_cache[domain] = rp
-                if rp.crawl_delay("*") is None:
-                    self.deley_cache[domain] = 0.001
+                robots_out = requests.get(robots_url)
+                robot_parser = Protego.parse(robots_out.text)
+                self.robots_cache[domain] = robot_parser
+                # Check for crawl delay, if not set, default to 0.001
+                if robot_parser.crawl_delay("*") is None:
+                    self.delay_cache[domain] = 0.001
                 else:
-                    self.deley_cache[domain] = rp.crawl_delay("*")
+                    self.delay_cache[domain] = robot_parser.crawl_delay("*")
             except:
-                return False
-        rp = self.robots_cache[domain]
-        if rp is None:
-            self.deley_cache[domain] = 0.001
+                # If robots.txt is not reachable, assume no time restrictions
+                self.delay_cache[domain] = 0.001
+                self.robots_cache[domain] = None
+
+        robot_parser = self.robots_cache[domain] # Get the cached parser
+        if robot_parser is None:
             return True
         try:
-            return rp.can_fetch("*", url)
+            return robot_parser.can_fetch("*", url)
         except:
             return True
 
     def respect_delay(self, url):
         now = time.time()
-        last = self.last_access.get(url, 0)
-        if now - last < self.deley_cache.get(url, 0.001):
-            print(f"Sleeping for: {self.deley_cache.get(url, 0.001) - (now - last)}")
-            time.sleep(self.deley_cache.get(url, 0.001) - (now - last))
-        
+        last = self.last_access.get(url,0)
+        delay = self.delay_cache.get(url,0.001)
+        if now - last < delay:
+            time.sleep(delay - (now - last))
         self.last_access[url] = time.time()
 
     def fetch(self, url: str) -> tuple:
         if not self.can_fetch(url):
-            print(f"Cannot fetch {url}")
             return None, None
 
         parsed = urlparse(url)

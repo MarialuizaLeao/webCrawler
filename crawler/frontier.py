@@ -2,8 +2,8 @@ from queue import Queue
 
 class Frontier():
     def __init__(self):
-        self.discovery = Queue() # URLs pointed by downloaded pages
-        self.visited = set() # URLs of already downloaded pages
+        self.discovery = Queue() # URLs to discover
+        self.visited = set() # URLs already visited
 
     def add(self, url):
         # Add URL to discovery queue
@@ -12,10 +12,7 @@ class Frontier():
 
     def get(self):
         # Get URL from discovery queue
-        if self.has_next():
-            return self.discovery.get()
-        else:
-            return None
+        return self.discovery.get(timeout=3)
         
     def has_next(self):
         # Check if there are more URLs to discover
