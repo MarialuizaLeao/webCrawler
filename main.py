@@ -5,24 +5,29 @@ import time
 import datetime
 import csv
 
-def log_thread_status(crawler, interval=5):
+def log_thread_status(crawler, interval=1):
     start_time = time.time()
+    previous_page_count = 0
     with open("download_rate50.csv", "w", newline="") as csvfile:
         writer = csv.writer(csvfile)
-        writer.writerow(["Timestamp", "Download Rate (pages/second)"])  # Write header
+        writer.writerow(["Timestamp", "Download Rate (pages/second)", "Pages Crawled in Last Interval"])  # Write header
 
         while True:
             alive = [t for t in threading.enumerate() if t.name != "MainThread"]
             elapsed_time = time.time() - start_time
-            download_rate = crawler.storage.page_count / elapsed_time if elapsed_time > 0 else 0
+            current_page_count = crawler.storage.page_count
+            pages_crawled_last_interval = current_page_count - previous_page_count
+            previous_page_count = current_page_count
+            download_rate = current_page_count / elapsed_time if elapsed_time > 0 else 0
             timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
             # Log to console
             print(f"[LOG] {len(alive)} threads active - {timestamp}")
             print(f"[LOG] Download rate: {download_rate:.2f} pages/second")
+            print(f"[LOG] Pages crawled in last interval: {pages_crawled_last_interval}")
 
             # Write to CSV
-            writer.writerow([timestamp, download_rate])
+            writer.writerow([timestamp, download_rate, pages_crawled_last_interval])
             csvfile.flush()  # Ensure data is written to disk
 
             time.sleep(interval)
