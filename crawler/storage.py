@@ -39,6 +39,5 @@ class Storage:
 
     def finalize(self):
         with self.lock:
-            if not self.closed:
-                self.stream.close()
-                self.closed = True
+            self.stream.close()
+            self.closed = True

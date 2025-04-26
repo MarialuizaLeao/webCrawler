@@ -3,6 +3,7 @@ from crawler.fetcher import Fetcher
 from crawler.parser import Parser
 from crawler.storage import Storage
 from crawler.utils import debug_output
+import threading
 
 
 class Crawler():
@@ -20,12 +21,15 @@ class Crawler():
         for line in lines:
             self.frontier.add(line.strip())
 
-
     def crawl(self):
-        # While there are URLs to discover and the limit is not reached
+        # While there are URLs to discover
         while self.frontier.has_next():
-            if self.storage.page_count >= self.limit:
-                return
+
+            # If the storage limit is reached, stop crawling
+            with self.storage.lock:
+                if self.storage.page_count >= self.limit:
+                    print(f"[{threading.current_thread().name}] Finished crawling. Storage limit reached.")
+                    return
 
             # Get next URL from frontier
             url = self.frontier.get()

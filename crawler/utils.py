@@ -8,4 +8,4 @@ def debug_output(url, title, text, timestamp):
         "Title": title,
         "Text": ' '.join(text.split()[:20]),
         "Timestamp": time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(timestamp))
-    }, ensure_ascii=False)
+    }, ensure_ascii=False, indent=0)

@@ -12,7 +12,9 @@ class Frontier():
 
     def get(self):
         # Get URL from discovery queue
-        return self.discovery.get(timeout=3)
+        url = self.discovery.get(timeout=3)
+        self.visited.add(url)
+        return url
         
     def has_next(self):
         # Check if there are more URLs to discover
