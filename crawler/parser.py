@@ -8,9 +8,10 @@ class Parser:
         if not soup:
             return '', '', []
         # Extract title, text, and outlinks
+        for tags_to_decompose in soup(['script', 'style', 'template']):
+            tags_to_decompose.decompose()
+        html_content = soup.prettify()
         title = soup.title.string.strip() if soup.title and soup.title.string else ''
-        text = ' '.join(soup.stripped_strings)
-        text = re.sub(r'\s+', ' ', text)
         outlinks = set()
         for tag in soup.find_all('a', href=True):
             href = tag['href']
@@ -18,4 +19,4 @@ class Parser:
             parsed = urlparse(abs_url)
             if parsed.scheme in ('http', 'https'):
                 outlinks.add(abs_url)
-        return title, text, list(outlinks)
+        return title, html_content, list(outlinks)

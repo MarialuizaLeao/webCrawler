@@ -1,4 +1,5 @@
 from warcio.warcwriter import WARCWriter
+from warcio.statusandheaders import StatusAndHeaders
 from io import BytesIO
 import threading
 
@@ -15,19 +16,18 @@ class Storage:
         self.stream = open(f"data-{self.file_index}.warc.gz", 'wb')
         self.writer = WARCWriter(self.stream, gzip=True)
 
-    def store_page(self, url, response, timestamp):
+    def store_page(self, url, html, fetched_content):
        with self.lock:
             if self.closed:
                 return
 
-            http_payload = f"HTTP/1.1 {response.status_code} OK\r\n"
-            for header, value in response.headers.items():
-                http_payload += f"{header}: {value}\r\n"
-            http_payload += "\r\n"
-            http_payload = http_payload.encode('utf-8') + response.content
+            encoded_html = html.encode("utf-8", errors='replace')
+            headers_list = fetched_content.raw.headers.items()
 
-            payload_stream = BytesIO(http_payload)
-            record = self.writer.create_warc_record(url, 'response', payload=payload_stream)
+            http_headers = StatusAndHeaders(statusline='200 OK', headers=headers_list, protocol='HTTP/1.0')
+
+            payload_stream = BytesIO(encoded_html)
+            record = self.writer.create_warc_record(url, record_type="application/http; msgtype=response", payload=payload_stream, http_headers=http_headers)
             self.writer.write_record(record)
 
             self.page_count += 1

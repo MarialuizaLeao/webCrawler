@@ -37,12 +37,12 @@ class Crawler():
                 continue
 
             # Fetch page content
-            html, timestamp = self.fetcher.fetch(url)
-            if html is None:
+            fetched_content, timestamp = self.fetcher.fetch(url)
+            if fetched_content is None:
                 continue
 
             # Parse page content
-            title, text, outlinks = self.parser.parse(html.text, url)
+            title, text, outlinks = self.parser.parse(fetched_content.text, url)
 
             if title == '' and text == '' and outlinks == []:
                 continue
@@ -52,7 +52,7 @@ class Crawler():
                 print(debug_output(url, title, text, timestamp))
 
             # Store page content
-            self.storage.store_page(url, html, timestamp)
+            self.storage.store_page(url, text, fetched_content)
 
             for link in outlinks:
                 if not self.frontier.was_visited(link):

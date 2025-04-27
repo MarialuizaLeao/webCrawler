@@ -5,10 +5,10 @@ import time
 import datetime
 import csv
 
-def log_thread_status(crawler, interval=1):
+def log_thread_status(crawler, thread_count, interval=1):
     start_time = time.time()
     previous_page_count = 0
-    with open("download_rate50.csv", "w", newline="") as csvfile:
+    with open(f"download_rate{thread_count}.csv", "w", newline="") as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow(["Timestamp", "Download Rate (pages/second)", "Pages Crawled in Last Interval"])  # Write header
 
@@ -44,6 +44,10 @@ def main():
     parser.add_argument(
         "-d", dest='debug', action='store_true', required=False, help="Run in debug mode"
     )
+    parser.add_argument(
+        "-t", dest='threads', type=int, default=100, required=False, help="Number of threads to use for crawling"
+    )
+
     args = parser.parse_args()
 
     # Record the start time
@@ -51,11 +55,11 @@ def main():
     
 
     crawler = Crawler(args.seed, args.limit, args.debug)
-    monitor_thread = threading.Thread(target=log_thread_status, name="Monitor", daemon=True, args=[crawler])
+    monitor_thread = threading.Thread(target=log_thread_status, name="Monitor", daemon=True, args=[crawler, args.threads])
     monitor_thread.start()
 
     threads = []
-    for _ in range(50):
+    for _ in range(args.threads):
         t = threading.Thread(target=crawler.crawl, name=f"Crawler-{_}")
         t.start()
         threads.append(t)
