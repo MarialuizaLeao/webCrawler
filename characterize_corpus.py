@@ -8,7 +8,7 @@ import pandas as pd
 import threading
 
 # Path to the directory containing WARC files
-WARC_DIR = "/home/marialuiza/Documents/faculdade/ir/webCrawler/result_25/"
+WARC_DIR = "/home/marialuiza/Documents/faculdade/ir/webCrawler/data_100/"
 
 # Global data structures
 domain_counts = Counter()  # Count of webpages per domain
@@ -35,25 +35,24 @@ def process_warc_file(warc_file):
     with open(warc_path, 'rb') as stream:
         for record in ArchiveIterator(stream):
             print(f"Processing record: {record.rec_headers.get_header('WARC-Record-ID')}")
-            if record.rec_type == 'response':
-                # Extract the URL
-                url = record.rec_headers.get_header('WARC-Target-URI')
-                domain = urlparse(url).netloc
-                local_unique_domains.add(domain)
-                
-                # Extract the HTML content
-                html = record.content_stream().read().decode('utf-8', errors='ignore')
-                soup = BeautifulSoup(html, 'html.parser')
-                
-                # Extract visible text and tokenize
-                text = ' '.join(soup.stripped_strings)
-                tokens = tokenize(text)
-                token_count = len(tokens)
-                
-                # Update local data structures
-                local_domain_counts[domain] += 1
-                local_domain_tokens[domain].append(token_count)
-                local_webpage_token_counts.append(token_count)
+            # Extract the URL
+            url = record.rec_headers.get_header('WARC-Target-URI')
+            domain = urlparse(url).netloc
+            local_unique_domains.add(domain)
+            
+            # Extract the HTML content
+            html = record.content_stream().read().decode('utf-8', errors='ignore')
+            soup = BeautifulSoup(html, 'html.parser')
+            
+            # Extract visible text and tokenize
+            text = ' '.join(soup.stripped_strings)
+            tokens = tokenize(text)
+            token_count = len(tokens)
+            
+            # Update local data structures
+            local_domain_counts[domain] += 1
+            local_domain_tokens[domain].append(token_count)
+            local_webpage_token_counts.append(token_count)
 
     # Merge local results into global data structures
     with lock:
@@ -82,7 +81,7 @@ for thread in threads:
 domain_size_distribution = {domain: len(tokens) for domain, tokens in domain_tokens.items()}
 
 # Save results to CSV files
-output_dir = "/home/marialuiza/Documents/faculdade/ir/webCrawler/result_25/analysis_results"
+output_dir = "/home/marialuiza/Documents/faculdade/ir/webCrawler/data_100/analysis_results"
 os.makedirs(output_dir, exist_ok=True)
 
 # Total unique domains
