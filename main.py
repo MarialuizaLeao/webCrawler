@@ -50,13 +50,7 @@ def main():
 
     args = parser.parse_args()
 
-    # Record the start time
-    start_time = time.time()
-    
-
     crawler = Crawler(args.seed, args.limit, args.debug)
-    monitor_thread = threading.Thread(target=log_thread_status, name="Monitor", daemon=True, args=[crawler, args.threads])
-    monitor_thread.start()
 
     threads = []
     for _ in range(args.threads):
@@ -67,20 +61,9 @@ def main():
 
     for t in threads:
         t.join()
-        print(f"{t.name} finished...")
-
-    # Record the end time
-    end_time = time.time()
 
     crawler.storage.finalize()  # Close the last WARC file
 
-    # Calculate and print the download rate
-    total_pages = crawler.storage.page_count
-    elapsed_time = end_time - start_time
-    download_rate = total_pages / elapsed_time if elapsed_time > 0 else 0
-    print(f"Total pages crawled: {total_pages}")
-    print(f"Elapsed time: {elapsed_time:.2f} seconds")
-    print(f"Download rate: {download_rate:.2f} pages/second")
         
 if __name__ == "__main__":
     main()

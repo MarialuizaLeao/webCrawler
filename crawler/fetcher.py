@@ -11,6 +11,11 @@ class Fetcher:
         self.last_access = {}
 
     def can_fetch(self, url: str) -> bool:
+        """
+        Check if the URL can be fetched according to the robots.txt rules.
+        url: The URL to check.
+        return: True if the URL can be fetched, False otherwise.
+        """
         parsed_url = urlparse(url)
         domain = parsed_url.netloc
         # Check if the domain is already in the cache
@@ -38,7 +43,11 @@ class Fetcher:
         except:
             return True
 
-    def respect_delay(self, url):
+    def respect_delay(self, url: str):
+        """
+        Respect the crawl delay for the given URL.
+        url: The URL to check.
+        """
         now = time.time()
         last = self.last_access.get(url,0)
         delay = self.delay_cache.get(url,0.001)
@@ -47,6 +56,11 @@ class Fetcher:
         self.last_access[url] = time.time()
 
     def fetch(self, url: str) -> tuple:
+        """
+        Fetch the content of the given URL.
+        url: The URL to fetch.
+        return: A tuple containing the response and the timestamp.
+        """
         if not self.can_fetch(url):
             return None, None
 
